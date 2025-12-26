@@ -2,7 +2,7 @@
 .detail-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -48,6 +48,9 @@
   border: none;
   color: #fff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ================= CONTENT ================= */
@@ -74,6 +77,11 @@
   gap: 22px;
   margin: 16px 0;
   border-bottom: 1px solid #333;
+  overflow-x: auto;
+}
+
+.detail-modal-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .detail-modal-tab {
@@ -81,6 +89,7 @@
   cursor: pointer;
   color: #aaa;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .detail-modal-tab.active {
@@ -106,20 +115,20 @@
 .detail-modal-episodes {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
 .detail-modal-episode {
   display: flex;
   gap: 12px;
-  margin-bottom: 14px;
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   border-radius: 8px;
   transition: background 0.2s;
 }
 
 .detail-modal-episode:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .detail-modal-episode img {
@@ -127,6 +136,7 @@
   height: 70px;
   object-fit: cover;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .detail-modal-episode strong {
@@ -146,6 +156,10 @@
   gap: 12px;
 }
 
+.detail-modal-more-item {
+  cursor: pointer;
+}
+
 .detail-modal-more-item img {
   width: 100%;
   border-radius: 8px;
@@ -155,6 +169,14 @@
   font-size: 13px;
   text-align: center;
   margin-top: 6px;
+  color: #ddd;
+}
+
+/* ================= DETAILS ================= */
+.detail-modal-details p {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #ccc;
 }
 
 /* ================= PLAYER ================= */
@@ -167,7 +189,7 @@
   overflow: hidden;
 }
 
-/* ================= MOBILE ================= */
+/* ================= MOBILE (TABLET) ================= */
 @media (max-width: 768px) {
   .detail-modal-container {
     flex-direction: column;
@@ -190,5 +212,38 @@
   .detail-modal-episode img {
     width: 90px;
     height: 52px;
+  }
+
+  .detail-modal-play {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+}
+
+/* ================= SMALL MOBILE ================= */
+@media (max-width: 480px) {
+  .detail-modal-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .detail-modal-poster {
+    height: 220px;
+  }
+
+  .detail-modal-tabs {
+    gap: 14px;
+  }
+
+  .detail-modal-episode img {
+    width: 75px;
+    height: 44px;
+  }
+
+  .detail-modal-player {
+    inset: 0;
+    border-radius: 0;
   }
 }

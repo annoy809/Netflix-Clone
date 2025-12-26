@@ -33,15 +33,11 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
     if (!isTV || !tvId) return;
 
     const fetchSeasons = async () => {
-      try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/tv/${tvId}?api_key=${API_KEY}`
-        );
-        const data = await res.json();
-        setSeasons((data.seasons || []).filter(s => s.season_number > 0));
-      } catch (e) {
-        console.error(e);
-      }
+      const res = await fetch(
+        `https://api.themoviedb.org/3/tv/${tvId}?api_key=${API_KEY}`
+      );
+      const data = await res.json();
+      setSeasons((data.seasons || []).filter(s => s.season_number > 0));
     };
 
     fetchSeasons();
@@ -52,15 +48,11 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
     if (!isTV || !tvId || !selectedSeason) return;
 
     const fetchEpisodes = async () => {
-      try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/tv/${tvId}/season/${selectedSeason}?api_key=${API_KEY}`
-        );
-        const data = await res.json();
-        setEpisodes(data.episodes || []);
-      } catch (e) {
-        console.error(e);
-      }
+      const res = await fetch(
+        `https://api.themoviedb.org/3/tv/${tvId}/season/${selectedSeason}?api_key=${API_KEY}`
+      );
+      const data = await res.json();
+      setEpisodes(data.episodes || []);
     };
 
     fetchEpisodes();
@@ -72,17 +64,16 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
 
     const fetchData = async () => {
       const type = isTV ? "tv" : "movie";
-      const [d, s] = await Promise.all([
-        fetch(
-          `https://api.themoviedb.org/3/${type}/${tvId}?api_key=${API_KEY}`
-        ),
+
+      const [detailsRes, similarRes] = await Promise.all([
+        fetch(`https://api.themoviedb.org/3/${type}/${tvId}?api_key=${API_KEY}`),
         fetch(
           `https://api.themoviedb.org/3/${type}/${tvId}/similar?api_key=${API_KEY}`
         ),
       ]);
 
-      setDetails(await d.json());
-      setSimilarItems((await s.json()).results || []);
+      setDetails(await detailsRes.json());
+      setSimilarItems((await similarRes.json()).results || []);
     };
 
     fetchData();
@@ -131,39 +122,57 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
   }, []);
 
   return (
-    <div className="detail-modal-backdrop" onClick={e => e.target === e.currentTarget && handleClose()}>
+    <div
+      className="detail-modal-backdrop"
+      onClick={e => e.target === e.currentTarget && handleClose()}
+    >
       <div className="detail-modal-container">
 
         {/* Poster */}
         <div className="detail-modal-poster">
           <img src={posterImage} alt="" />
-          <button className="detail-modal-play" onClick={() => setShowPlayer(true)}>▶</button>
+          <button
+            className="detail-modal-play"
+            onClick={() => {
+              setSelectedMoreItem({
+                tmdbID: tvId,
+                imdbID: details?.imdbID,
+                name: item.title || item.name,
+              });
+              setShowPlayer(true);
+            }}
+          >
+            ▶
+          </button>
         </div>
 
         {/* Content */}
         <div className="detail-modal-content">
-          <button className="detail-modal-close" onClick={handleClose}>×</button>
+          <button className="detail-modal-close" onClick={handleClose}>
+            ×
+          </button>
+
           <h2>{item.title || item.name}</h2>
           <p>{item.overview}</p>
 
           {/* Tabs */}
           <div className="detail-modal-tabs">
-            {(isTV ? ["episodes", "more", "details"] : ["more", "details"]).map(t => (
-              <div
-                key={t}
-                className={`detail-modal-tab ${tab === t ? "active" : ""}`}
-                onClick={() => setTab(t)}
-              >
-                {t}
-              </div>
-            ))}
+            {(isTV ? ["episodes", "more", "details"] : ["more", "details"]).map(
+              t => (
+                <div
+                  key={t}
+                  className={`detail-modal-tab ${tab === t ? "active" : ""}`}
+                  onClick={() => setTab(t)}
+                >
+                  {t}
+                </div>
+              )
+            )}
           </div>
 
-          {/* Episodes */}
+          {/* EPISODES */}
           {isTV && tab === "episodes" && (
             <div className="detail-modal-episodes">
-
-              {/* Season Selector */}
               <div className="season-selector">
                 <select
                   value={selectedSeason}
@@ -202,7 +211,55 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
             </div>
           )}
 
-          {/* Player */}
+          {/* MORE */}
+          {tab === "more" && (
+            <div className="detail-modal-more">
+              <h3>More Like This</h3>
+
+              <div className="detail-modal-more-grid">
+                {similarItems.slice(0, 12).map(sim => (
+                  <div
+                    key={sim.id}
+                    className="detail-modal-more-item"
+                    onClick={() => {
+                      setSelectedMoreItem({
+                        tmdbID: sim.id,
+                        imdbID: sim.imdb_id,
+                        name: sim.title || sim.name,
+                      });
+                      setShowPlayer(true);
+                    }}
+                  >
+                    <img
+                      src={
+                        sim.poster_path
+                          ? `https://image.tmdb.org/t/p/w300${sim.poster_path}`
+                          : "https://via.placeholder.com/150x225"
+                      }
+                      alt=""
+                    />
+                    <p>{sim.title || sim.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* DETAILS */}
+          {tab === "details" && details && (
+            <div className="detail-modal-details">
+              <h3>Details</h3>
+              <p><strong>Title:</strong> {details.title || details.name}</p>
+              <p><strong>Status:</strong> {details.status}</p>
+              <p><strong>Release:</strong> {details.release_date || details.first_air_date}</p>
+              <p><strong>Language:</strong> {details.original_language?.toUpperCase()}</p>
+              <p><strong>Rating:</strong> ⭐ {details.vote_average}</p>
+              <p><strong>Votes:</strong> {details.vote_count}</p>
+              <p><strong>Genres:</strong> {details.genres?.map(g => g.name).join(", ")}</p>
+            </div>
+          )}
+
+          {/* PLAYER */}
           {showPlayer && selectedMoreItem && (
             <div className="detail-modal-player">
               {isImdbLoading ? (
