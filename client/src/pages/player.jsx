@@ -21,58 +21,6 @@ const SERVERS = [
         ? `https://vidsrc.to/embed/tv/${tmdbID}/${s}/${e}`
         : `https://vidsrc.to/embed/movie/${tmdbID}`,
   },
-
-  {
-    name: "VidSrc.me",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://vidsrc.me/embed/tv?tmdb=${tmdbID}&season=${s}&episode=${e}`
-        : `https://vidsrc.me/embed/movie?tmdb=${tmdbID}`,
-  },
-
-  {
-    name: "MultiEmbed",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://multiembed.mov/?video_id=${tmdbID}&s=${s}&e=${e}`
-        : `https://multiembed.mov/?video_id=${tmdbID}`,
-  },
-
-  {
-    name: "2Embed",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://www.2embed.cc/embed/tv/${tmdbID}/${s}/${e}`
-        : `https://www.2embed.cc/embed/${tmdbID}`,
-  },
-
-  {
-    name: "AutoEmbed",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://autoembed.to/tv/tmdb/${tmdbID}-${s}-${e}`
-        : `https://autoembed.to/movie/tmdb/${tmdbID}`,
-  },
-
-  /* =====================
-     🇮🇳 HINDI / DUAL AUDIO (PLAYABLE)
-  ===================== */
-
-  {
-    name: "MultiEmbed Hindi",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://multiembed.mov/?video_id=${tmdbID}&tmdb=1&s=${s}&e=${e}`
-        : `https://multiembed.mov/?video_id=${tmdbID}&tmdb=1`,
-  },
-
-  {
-    name: "SmashyStream",
-    build: ({ tmdbID, s, e }) =>
-      s && e
-        ? `https://player.smashystream.com/tv/${tmdbID}?s=${s}&e=${e}`
-        : `https://player.smashystream.com/movie/${tmdbID}`,
-  },
 ];
 
 
