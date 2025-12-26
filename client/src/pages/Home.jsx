@@ -48,7 +48,6 @@ const Home = () => {
   const [isNotifiVisible, setIsNotifiVisible] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-
   const navigate = useNavigate();
 
   /* ================================
@@ -145,32 +144,103 @@ const Home = () => {
         />
 
         {/* Hero Banner */}
-<HeroBanner
-  onPlay={(data) => handleSelect(data)}
-  onInfoClick={(data) => handleSelect(data)}
-/>
-
+        <HeroBanner
+          onPlay={(data) => handleSelect(data)}
+          onInfoClick={(data) => handleSelect(data)}
+        />
 
         {/* ================================
             🎞️ TMDB Sections
         ================================ */}
-        <SectionList title="Trending Now" endpoint="/trending/all/week" onSelect={handleSelect} />
-        <SectionList title="Top Rated Movies" endpoint="/movie/top_rated" onSelect={handleSelect} />
-        <SectionList title="Recently Added" endpoint="/movie/now_playing" onSelect={handleSelect} />
-        <SectionList title="Popular TV Shows" endpoint="/tv/popular" onSelect={handleSelect} />
-<SectionList title="Action Thrillers" endpoint="/discover/movie?with_genres=28" onSelect={handleSelect} />
-<SectionList title="Romantic Comedies" endpoint="/discover/movie?with_genres=35,10749" onSelect={handleSelect} />
-<SectionList title="Horror Picks" endpoint="/discover/movie?with_genres=27" onSelect={handleSelect} />
-<SectionList title="Sci-Fi Adventures" endpoint="/discover/movie?with_genres=878" onSelect={handleSelect} />
+        {/* Global Trending */}
+        <SectionList
+          title="Trending Now"
+          endpoint="/trending/all/week"
+          onSelect={handleSelect}
+        />
 
-<SectionList title="Anime Movies" endpoint="/discover/movie?with_genres=16" onSelect={handleSelect} />
-<SectionList title="Anime Series" endpoint="/discover/tv?with_genres=16" onSelect={handleSelect} />
+        {/* Bollywood / Hindi Trending */}
+        <SectionList
+          title="Bollywood Trending"
+          endpoint="/discover/movie?with_original_language=hi&sort_by=popularity.desc"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Hindi Web Series"
+          endpoint="/discover/tv?with_original_language=hi&sort_by=popularity.desc"
+          onSelect={handleSelect}
+        />
 
-<SectionList title="Documentaries" endpoint="/discover/movie?with_genres=99" onSelect={handleSelect} />
-<SectionList title="K-Drama" endpoint="/discover/tv?with_original_language=ko" onSelect={handleSelect} />
-<SectionList title="Family & Kids" endpoint="/discover/movie?with_genres=10751" onSelect={handleSelect} />
-<SectionList title="Reality Shows" endpoint="/discover/tv?with_genres=10764" onSelect={handleSelect} />
+        {/* Other Sections */}
+        <SectionList
+          title="Top Rated Movies"
+          endpoint="/movie/top_rated"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Recently Added"
+          endpoint="/movie/now_playing"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Popular TV Shows"
+          endpoint="/tv/popular"
+          onSelect={handleSelect}
+        />
 
+        {/* Genre Sections with optional Hindi filter */}
+        <SectionList
+          title="Action Thrillers"
+          endpoint="/discover/movie?with_genres=28"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Romantic Comedies"
+          endpoint="/discover/movie?with_genres=35,10749"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Horror Picks"
+          endpoint="/discover/movie?with_genres=27"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Sci-Fi Adventures"
+          endpoint="/discover/movie?with_genres=878"
+          onSelect={handleSelect}
+        />
+
+        <SectionList
+          title="Anime Movies"
+          endpoint="/discover/movie?with_genres=16"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Anime Series"
+          endpoint="/discover/tv?with_genres=16"
+          onSelect={handleSelect}
+        />
+
+        <SectionList
+          title="Documentaries"
+          endpoint="/discover/movie?with_genres=99"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="K-Drama"
+          endpoint="/discover/tv?with_original_language=ko"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Family & Kids"
+          endpoint="/discover/movie?with_genres=10751"
+          onSelect={handleSelect}
+        />
+        <SectionList
+          title="Reality Shows"
+          endpoint="/discover/tv?with_genres=10764"
+          onSelect={handleSelect}
+        />
 
         {/* Detail Modal */}
         {selectedItem && (
