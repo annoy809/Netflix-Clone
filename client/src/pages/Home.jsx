@@ -92,20 +92,25 @@ const Home = () => {
      🎬 Select Item Handler
   ================================ */
   const handleSelect = useCallback((item) => {
+    // Determine media type
+    const isTV = item.media_type === "tv" || item.name ? true : false;
+
     const enriched = {
       ...item,
-      id: item.id,
-      media_type: item.media_type || (item.name ? "tv" : "movie"),
+      id: item.id || item.tmdbID || item.imdbID,
+      tmdbID: item.id || item.tmdbID || null, // must pass to DetailModal
+      imdbID: item.imdbID || null,
+      media_type: isTV ? "tv" : "movie",
       season: 1,
       title: item.title || item.name || "Untitled",
-      description: item.overview || "",
+      description: item.overview || item.Plot || "",
       poster: item.poster_path
         ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-        : null,
+        : item.poster || null,
     };
 
     setSelectedItem(enriched);
-    setTvId(enriched.id);
+    setTvId(enriched.tmdbID);
     setSeasonNumber(1);
   }, []);
 
@@ -140,7 +145,7 @@ const Home = () => {
           query={query}
           setQuery={setQuery}
           movies={movies}
-          onSelect={handleSelect}
+          onSelect={handleSelect} // ✅ working integration
         />
 
         {/* Hero Banner */}
@@ -152,14 +157,12 @@ const Home = () => {
         {/* ================================
             🎞️ TMDB Sections
         ================================ */}
-        {/* Global Trending */}
         <SectionList
           title="Trending Now"
           endpoint="/trending/all/week"
           onSelect={handleSelect}
         />
 
-        {/* Bollywood / Hindi Trending */}
         <SectionList
           title="Bollywood Trending"
           endpoint="/discover/movie?with_original_language=hi&sort_by=popularity.desc"
@@ -170,8 +173,6 @@ const Home = () => {
           endpoint="/discover/tv?with_original_language=hi&sort_by=popularity.desc"
           onSelect={handleSelect}
         />
-
-        {/* Other Sections */}
         <SectionList
           title="Top Rated Movies"
           endpoint="/movie/top_rated"
@@ -188,7 +189,6 @@ const Home = () => {
           onSelect={handleSelect}
         />
 
-        {/* Genre Sections with optional Hindi filter */}
         <SectionList
           title="Action Thrillers"
           endpoint="/discover/movie?with_genres=28"
@@ -209,7 +209,6 @@ const Home = () => {
           endpoint="/discover/movie?with_genres=878"
           onSelect={handleSelect}
         />
-
         <SectionList
           title="Anime Movies"
           endpoint="/discover/movie?with_genres=16"
@@ -220,7 +219,6 @@ const Home = () => {
           endpoint="/discover/tv?with_genres=16"
           onSelect={handleSelect}
         />
-
         <SectionList
           title="Documentaries"
           endpoint="/discover/movie?with_genres=99"
@@ -247,7 +245,7 @@ const Home = () => {
           <DetailModal
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
-            tvId={tvId}
+            tvId={tvId} // ✅ ensure TMDb ID
             seasonNumber={seasonNumber}
           />
         )}

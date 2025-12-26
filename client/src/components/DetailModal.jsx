@@ -17,92 +17,60 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
   const [isImdbLoading, setIsImdbLoading] = useState(false);
 
   const API_KEY = "80a440824f9a51de8cc051fe109b6e3c";
+  const isTV = item?.media_type === "tv" || !!item?.first_air_date || Array.isArray(item?.episode_run_time);
 
-  const isTV =
-    item?.media_type === "tv" ||
-    !!item?.first_air_date ||
-    Array.isArray(item?.episode_run_time);
-
-  /* ================= POSTER ================= */
-  const posterImage = item.poster_path
+// ================= POSTER FIX =================
+const posterImage =
+  item.poster_path
     ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+    : item.backdrop_path
+    ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}`
+    : item.poster // ✅ fallback from SearchModal (OMDB)
+    ? item.poster
     : "https://via.placeholder.com/500x750?text=No+Image";
 
-  /* ================= SEASONS ================= */
-  useEffect(() => {
-    if (!isTV || !tvId) return;
 
-    const fetchSeasons = async () => {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/tv/${tvId}?api_key=${API_KEY}`
-      );
-      const data = await res.json();
-      setSeasons((data.seasons || []).filter(s => s.season_number > 0));
-    };
-
-    fetchSeasons();
-  }, [tvId, isTV]);
-
-  /* ================= EPISODES ================= */
-  useEffect(() => {
-    if (!isTV || !tvId || !selectedSeason) return;
-
-    const fetchEpisodes = async () => {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/tv/${tvId}/season/${selectedSeason}?api_key=${API_KEY}`
-      );
-      const data = await res.json();
-      setEpisodes(data.episodes || []);
-    };
-
-    fetchEpisodes();
-  }, [tvId, isTV, selectedSeason]);
-
-  /* ================= DETAILS + SIMILAR ================= */
   useEffect(() => {
     if (!tvId) return;
+    const type = isTV ? "tv" : "movie";
 
     const fetchData = async () => {
-      const type = isTV ? "tv" : "movie";
+      try {
+        setIsImdbLoading(true);
+        const detailsRes = await fetch(`https://api.themoviedb.org/3/${type}/${tvId}?api_key=${API_KEY}`);
+        const detailsData = await detailsRes.json();
+        const extRes = await fetch(`https://api.themoviedb.org/3/${type}/${tvId}/external_ids?api_key=${API_KEY}`);
+        const extData = await extRes.json();
+        const similarRes = await fetch(`https://api.themoviedb.org/3/${type}/${tvId}/similar?api_key=${API_KEY}`);
+        const similarData = await similarRes.json();
 
-      const [detailsRes, similarRes] = await Promise.all([
-        fetch(`https://api.themoviedb.org/3/${type}/${tvId}?api_key=${API_KEY}`),
-        fetch(
-          `https://api.themoviedb.org/3/${type}/${tvId}/similar?api_key=${API_KEY}`
-        ),
-      ]);
+        setDetails({ ...detailsData, imdbID: extData.imdb_id });
+        setSimilarItems(similarData.results || []);
 
-      setDetails(await detailsRes.json());
-      setSimilarItems((await similarRes.json()).results || []);
+        if (isTV) {
+          setSeasons((detailsData.seasons || []).filter(s => s.season_number > 0));
+          if (detailsData.seasons && detailsData.seasons.length > 0) {
+            const seasonRes = await fetch(`https://api.themoviedb.org/3/tv/${tvId}/season/${selectedSeason}?api_key=${API_KEY}`);
+            const seasonData = await seasonRes.json();
+            setEpisodes(seasonData.episodes || []);
+          }
+        }
+        setIsImdbLoading(false);
+      } catch (err) {
+        console.error(err);
+        setIsImdbLoading(false);
+      }
     };
 
     fetchData();
-  }, [tvId, isTV]);
+  }, [tvId, isTV, selectedSeason]);
 
-  /* ================= IMDb ================= */
-  useEffect(() => {
-    if (!tvId) return;
-
-    const fetchImdb = async () => {
-      setIsImdbLoading(true);
-      const type = isTV ? "tv" : "movie";
-      const res = await fetch(
-        `https://api.themoviedb.org/3/${type}/${tvId}/external_ids?api_key=${API_KEY}`
-      );
-      const data = await res.json();
-      setDetails(prev => ({ ...prev, imdbID: data.imdb_id }));
-      setIsImdbLoading(false);
-    };
-
-    fetchImdb();
-  }, [tvId, isTV]);
-
-  /* ================= PLAY ================= */
   const playEpisode = (ep) => {
+    if (!details?.imdbID) return;
     setSelectedEpisode(ep.episode_number);
     setSelectedMoreItem({
       tmdbID: tvId,
-      imdbID: details?.imdbID,
+      imdbID: details.imdbID,
       season: selectedSeason,
       episode: ep.episode_number,
       name: ep.name,
@@ -110,7 +78,6 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
     setShowPlayer(true);
   };
 
-  /* ================= CLOSE ================= */
   const handleClose = () => {
     onClose?.();
     document.body.style.overflow = "auto";
@@ -122,122 +89,74 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
   }, []);
 
   return (
-    <div
-      className="detail-modal-backdrop"
-      onClick={e => e.target === e.currentTarget && handleClose()}
-    >
+    <div className="detail-modal-backdrop" onClick={e => e.target === e.currentTarget && handleClose()}>
       <div className="detail-modal-container">
-
-        {/* Poster */}
         <div className="detail-modal-poster">
-          <img src={posterImage} alt="" />
-          <button
-            className="detail-modal-play"
-            onClick={() => {
-              setSelectedMoreItem({
-                tmdbID: tvId,
-                imdbID: details?.imdbID,
-                name: item.title || item.name,
-              });
-              setShowPlayer(true);
-            }}
-          >
-            ▶
-          </button>
+          <img src={posterImage} alt={item.title || item.name} />
+          <button className="detail-modal-play" onClick={() => {
+            if (!details?.imdbID) return;
+            setSelectedMoreItem({ tmdbID: tvId, imdbID: details.imdbID, name: item.title || item.name });
+            setShowPlayer(true);
+          }}>▶</button>
         </div>
 
-        {/* Content */}
         <div className="detail-modal-content">
-          <button className="detail-modal-close" onClick={handleClose}>
-            ×
-          </button>
-
+          <button className="detail-modal-close" onClick={handleClose}>×</button>
           <h2>{item.title || item.name}</h2>
           <p>{item.overview}</p>
 
-          {/* Tabs */}
           <div className="detail-modal-tabs">
-            {(isTV ? ["episodes", "more", "details"] : ["more", "details"]).map(
-              t => (
-                <div
-                  key={t}
-                  className={`detail-modal-tab ${tab === t ? "active" : ""}`}
-                  onClick={() => setTab(t)}
-                >
-                  {t}
-                </div>
-              )
-            )}
+            {(isTV ? ["episodes", "more", "details"] : ["more", "details"]).map(t => (
+              <div key={t} className={`detail-modal-tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>{t}</div>
+            ))}
           </div>
 
-          {/* EPISODES */}
           {isTV && tab === "episodes" && (
             <div className="detail-modal-episodes">
               <div className="season-selector">
-                <select
-                  value={selectedSeason}
-                  onChange={e => setSelectedSeason(Number(e.target.value))}
-                >
-                  {seasons.map(s => (
-                    <option key={s.id} value={s.season_number}>
-                      Season {s.season_number}
-                    </option>
-                  ))}
+                <select value={selectedSeason} onChange={e => setSelectedSeason(Number(e.target.value))}>
+                  {seasons.map(s => <option key={s.id} value={s.season_number}>Season {s.season_number}</option>)}
                 </select>
               </div>
-
               {episodes.map(ep => (
-                <div
-                  key={ep.id}
-                  className="detail-modal-episode"
-                  onClick={() => playEpisode(ep)}
-                >
-                  <img
-                    src={
-                      ep.still_path
-                        ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
-                        : "https://via.placeholder.com/150x84"
-                    }
-                    alt=""
-                  />
-                  <div>
-                    <strong>
-                      Ep {ep.episode_number}: {ep.name}
-                    </strong>
-                    <p>{ep.overview}</p>
-                  </div>
+                <div key={ep.id} className="detail-modal-episode" onClick={() => playEpisode(ep)}>
+                  <img src={ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : posterImage} alt={ep.name || `Episode ${ep.episode_number}`} />
+                  <div><strong>Ep {ep.episode_number}: {ep.name}</strong><p>{ep.overview}</p></div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* MORE */}
           {tab === "more" && (
             <div className="detail-modal-more">
               <h3>More Like This</h3>
-
               <div className="detail-modal-more-grid">
                 {similarItems.slice(0, 12).map(sim => (
-                  <div
-                    key={sim.id}
-                    className="detail-modal-more-item"
-                    onClick={() => {
+                  <div key={sim.id} className="detail-modal-more-item" onClick={async () => {
+                    if (!sim.id) return;
+                    setIsImdbLoading(true);
+                    try {
+                      const type = isTV ? "tv" : "movie";
+                      const res = await fetch(`https://api.themoviedb.org/3/${type}/${sim.id}/external_ids?api_key=${API_KEY}`);
+                      const data = await res.json();
                       setSelectedMoreItem({
                         tmdbID: sim.id,
-                        imdbID: sim.imdb_id,
+                        imdbID: data.imdb_id,
                         name: sim.title || sim.name,
+                        poster: sim.poster_path
+                          ? `https://image.tmdb.org/t/p/w500${sim.poster_path}`
+                          : sim.backdrop_path
+                          ? `https://image.tmdb.org/t/p/w500${sim.backdrop_path}`
+                          : "https://via.placeholder.com/150x225?text=No+Image",
                       });
                       setShowPlayer(true);
-                    }}
-                  >
-                    <img
-                      src={
-                        sim.poster_path
-                          ? `https://image.tmdb.org/t/p/w300${sim.poster_path}`
-                          : "https://via.placeholder.com/150x225"
-                      }
-                      alt=""
-                    />
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setIsImdbLoading(false);
+                    }
+                  }}>
+                    <img src={sim.poster_path ? `https://image.tmdb.org/t/p/w300${sim.poster_path}` : sim.backdrop_path ? `https://image.tmdb.org/t/p/w300${sim.backdrop_path}` : "https://via.placeholder.com/150x225?text=No+Image"} alt={sim.title || sim.name} />
                     <p>{sim.title || sim.name}</p>
                   </div>
                 ))}
@@ -245,7 +164,6 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
             </div>
           )}
 
-          {/* DETAILS */}
           {tab === "details" && details && (
             <div className="detail-modal-details">
               <h3>Details</h3>
@@ -259,17 +177,9 @@ const DetailModal = ({ item, onClose, tvId, seasonNumber }) => {
             </div>
           )}
 
-          {/* PLAYER */}
           {showPlayer && selectedMoreItem && (
             <div className="detail-modal-player">
-              {isImdbLoading ? (
-                <p>Loading...</p>
-              ) : (
-                <Player
-                  selectedMovie={selectedMoreItem}
-                  onClose={() => setShowPlayer(false)}
-                />
-              )}
+              {isImdbLoading ? <p>Loading...</p> : <Player selectedMovie={selectedMoreItem} onClose={() => setShowPlayer(false)} />}
             </div>
           )}
         </div>

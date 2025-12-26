@@ -12,7 +12,9 @@ export default function SearchModal({
   onSelect,
 }) {
   const [trending, setTrending] = useState([]);
+  const [hindiTrending, setHindiTrending] = useState([]);
 
+  // Global Trending (English / Hollywood)
   useEffect(() => {
     const fetchTrending = async () => {
       try {
@@ -20,9 +22,9 @@ export default function SearchModal({
           `https://api.themoviedb.org/3/trending/all/day?api_key=${TMDB_API_KEY}`
         );
         const data = await res.json();
-
         const mapped = data.results.map(item => ({
           id: item.id,
+          tmdbID: item.id,
           title: item.title || item.name,
           media_type: item.media_type,
           season: 1,
@@ -31,40 +33,61 @@ export default function SearchModal({
             : 'https://via.placeholder.com/80x120?text=No+Image',
           description: item.overview,
         }));
-
         setTrending(mapped);
       } catch (err) {
         console.error('Failed to fetch trending:', err);
       }
     };
-
     fetchTrending();
   }, []);
 
+  // Hindi / Bollywood Trending
   useEffect(() => {
-    if (show) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
+    const fetchHindiTrending = async () => {
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_original_language=hi&sort_by=popularity.desc`
+        );
+        const data = await res.json();
+        const mapped = data.results.map(item => ({
+          id: item.id,
+          tmdbID: item.id,
+          title: item.title || item.name,
+          media_type: 'movie',
+          season: 1,
+          poster: item.poster_path
+            ? `https://image.tmdb.org/t/p/w200${item.poster_path}`
+            : 'https://via.placeholder.com/80x120?text=No+Image',
+          description: item.overview,
+        }));
+        setHindiTrending(mapped);
+      } catch (err) {
+        console.error('Failed to fetch Hindi trending:', err);
+      }
     };
+    fetchHindiTrending();
+  }, []);
+
+  useEffect(() => {
+    if (show) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
   }, [show]);
 
-  /* 🔥 FIXED */
+  /* 🔥 Handle Selection */
 const handleSelect = (e, movie) => {
   e.stopPropagation();
+  const isTV = movie.media_type === "tv" || movie.Type === "series";
 
   onSelect({
-    ...movie,
-
-    poster_path:
-      movie.poster ||
-      (movie.Poster && movie.Poster !== "N/A"
-        ? movie.Poster.replace("SX300", "")
-        : null),
+    id: movie.id || movie.tmdbID || movie.imdbID,
+    tmdbID: movie.id || movie.tmdbID || null,
+    imdbID: movie.imdbID || null,
+    media_type: isTV ? "tv" : "movie",
+    season: 1,
+    title: movie.title || movie.Title,
+    overview: movie.description || movie.Plot || "",
+    poster: movie.poster || movie.Poster || "https://via.placeholder.com/500x750?text=No+Image", // ✅ Use poster directly
   });
 
   setShow(false);
@@ -75,10 +98,7 @@ const handleSelect = (e, movie) => {
 
   return (
     <div className="search-modal" onClick={() => setShow(false)}>
-      <div
-        className="search-modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="search-modal-content" onClick={(e) => e.stopPropagation()}>
         <input
           type="text"
           className="search-input"
@@ -96,30 +116,23 @@ const handleSelect = (e, movie) => {
                 <div
                   key={movie.imdbID}
                   className="result-card"
-                  onClick={(e) =>
-                    handleSelect(e, {
-                      title: movie.Title,
-                      poster: movie.Poster,
-                      description: '',
-                      id: movie.imdbID,
-                      media_type: movie.Type,
-                      season: 1,
-                    })
-                  }
+                  onClick={(e) => handleSelect(e, {
+                    title: movie.Title,
+                    poster: movie.Poster,
+                    description: '',
+                    id: movie.imdbID,
+                    imdbID: movie.imdbID,
+                    media_type: movie.Type,
+                    season: 1,
+                  })}
                 >
                   <img
-                    src={
-                      movie.Poster !== 'N/A'
-                        ? movie.Poster
-                        : 'https://via.placeholder.com/80x120?text=No+Image'
-                    }
+                    src={movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/80x120?text=No+Image'}
                     alt={movie.Title}
                   />
                   <div className="info">
                     <p className="title">{movie.Title}</p>
-                    <span className="meta">
-                      {movie.Year} • {movie.Type === 'series' ? 'Series' : 'Movie'}
-                    </span>
+                    <span className="meta">{movie.Year} • {movie.Type === 'series' ? 'Series' : 'Movie'}</span>
                   </div>
                 </div>
               ))}
@@ -131,15 +144,21 @@ const handleSelect = (e, movie) => {
           <h3>Trending Now</h3>
           <div className="results-grid">
             {trending.slice(0, 20).map((movie, idx) => (
-              <div
-                key={movie.id + idx}
-                className="result-card"
-                onClick={(e) => handleSelect(e, movie)}
-              >
+              <div key={movie.id + idx} className="result-card" onClick={(e) => handleSelect(e, movie)}>
                 <img src={movie.poster} alt={movie.title} />
-                <div className="info">
-                  <p className="title">{movie.title}</p>
-                </div>
+                <div className="info"><p className="title">{movie.title}</p></div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="trending-section">
+          <h3>Bollywood / Hindi Trending</h3>
+          <div className="results-grid">
+            {hindiTrending.slice(0, 20).map((movie, idx) => (
+              <div key={movie.id + idx} className="result-card" onClick={(e) => handleSelect(e, movie)}>
+                <img src={movie.poster} alt={movie.title} />
+                <div className="info"><p className="title">{movie.title}</p></div>
               </div>
             ))}
           </div>
