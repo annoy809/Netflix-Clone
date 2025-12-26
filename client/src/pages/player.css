@@ -8,7 +8,7 @@
   flex-direction: column;
 }
 
-/* TOP BAR */
+/* ================= TOP BAR ================= */
 .player-topbar {
   height: 48px;
   display: flex;
@@ -16,7 +16,8 @@
   align-items: center;
   padding: 0 14px;
   background: linear-gradient(to bottom, rgba(0,0,0,.85), transparent);
-  z-index: 10;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .player-logo {
@@ -28,6 +29,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 
 .server-btn {
@@ -37,6 +39,9 @@
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 13px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 100;
 }
 
 .close-btn {
@@ -44,50 +49,59 @@
   border: none;
   color: white;
   font-size: 22px;
+  cursor: pointer;
 }
 
-/* SERVER MENU */
+/* ================= SERVER MENU ================= */
 .server-dropdown {
   position: absolute;
   top: 52px;
   right: 14px;
   background: #111;
-  border-radius: 10px;
-  padding: 6px;
-  z-index: 20;
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 99999;
+  pointer-events: auto;
 }
 
 .server-dropdown button {
-  background: none;
+  background: #1c1c1c;
   border: none;
   color: white;
-  padding: 8px 14px;
+  padding: 10px 14px;
   width: 100%;
   text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .server-dropdown button.active {
   color: #e50914;
 }
 
-/* VIDEO */
+/* ================= VIDEO ================= */
 .player-wrapper {
   flex: 1;
   background: black;
+  position: relative;
+  z-index: 1;
 }
 
 .player-wrapper iframe {
   width: 100%;
   height: 100%;
   border: none;
+  z-index: 1;
+  pointer-events: auto;
 }
 
-/* EPISODES */
+/* ================= EPISODES ================= */
 .episode-grid {
   max-height: 35vh;
   overflow-y: auto;
   background: #0d0d0d;
   padding: 10px;
+  z-index: 50;
 }
 
 .episode-grid button {
@@ -98,105 +112,14 @@
   border: none;
   border-radius: 10px;
   color: white;
+  cursor: pointer;
 }
 
 .episode-grid button.active {
   background: #e50914;
 }
-/* ===========================
-   MOBILE ONLY (<= 768px)
-=========================== */
-@media (max-width: 768px) {
 
-  /* PLAYER ROOT */
-  .netflix-player {
-    background: #000;
-  }
-
-  /* TOP BAR */
-  .player-topbar {
-    height: 44px;
-    padding: 0 10px;
-  }
-
-  .player-logo {
-    display: none; /* Netflix mobile me logo nahi hota */
-  }
-
-  .server-btn {
-    font-size: 6px;
-    border-radius: 16px;
-  }
-
-  .close-btn {
-    font-size: 20px;
-  }
-
-  /* SERVER DROPDOWN FULL WIDTH */
-  .server-dropdown {
-    left: 10px;
-    right: 10px;
-    top: 48px;
-    border-radius: 14px;
-    padding: 8px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-
-  .server-dropdown button {
-    text-align: center;
-    font-size: 13px;
-    padding: 10px 6px;
-    border-radius: 10px;
-    background: #1c1c1c;
-  }
-
-  /* VIDEO FULL SAFE HEIGHT */
-  .player-wrapper {
-    flex: 1;
-    position: relative;
-  }
-
-  .player-wrapper iframe {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* EPISODE LIST – BOTTOM SHEET STYLE */
-  .episode-grid {
-    max-height: 40vh;
-    border-radius: 16px 16px 0 0;
-    padding: 12px;
-  }
-
-  .episode-grid button {
-    font-size: 14px;
-    padding: 12px;
-  }
-}
-
-/* ===========================
-   EXTRA SMALL DEVICES (<=480px)
-=========================== */
-@media (max-width: 480px) {
-
-  .server-btn {
-    font-size: 5px;
-    padding: 5px 8px;
-  }
-
-  .close-btn {
-    font-size: 18px;
-  }
-
-  .server-dropdown {
-    grid-template-columns: 1fr;
-  }
-}
-/* ===============================
-   MOBILE FIX – NETFLIX STYLE
-================================ */
+/* ================= MOBILE FIX ================= */
 @media (max-width: 768px) {
 
   html,
@@ -206,14 +129,12 @@
     overflow: hidden;
   }
 
-  /* ROOT PLAYER */
   .netflix-player {
-    height: 100dvh; /* modern mobile fix */
+    height: 100dvh;
     width: 100vw;
     background: #000;
   }
 
-  /* TOP BAR – SAFE & COMPACT */
   .player-topbar {
     position: absolute;
     top: env(safe-area-inset-top);
@@ -221,12 +142,8 @@
     right: 0;
     height: 44px;
     padding: 0 12px;
-    z-index: 20;
-    background: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.9),
-      rgba(0,0,0,0)
-    );
+    z-index: 99999;
+    pointer-events: auto;
   }
 
   .player-logo {
@@ -234,63 +151,49 @@
   }
 
   .server-btn {
-    padding: 6px 12px;
     font-size: 12px;
+    padding: 6px 12px;
     border-radius: 16px;
-    white-space: nowrap;
+    z-index: 99999;
   }
 
   .close-btn {
     font-size: 20px;
-    margin-left: 305px;
   }
 
-  /* SERVER DROPDOWN */
   .server-dropdown {
-    position: absolute;
     top: calc(44px + env(safe-area-inset-top));
     left: 10px;
     right: 10px;
     border-radius: 14px;
     padding: 10px;
-    background: #111;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    z-index: 30;
+    z-index: 99999;
   }
 
   .server-dropdown button {
-    padding: 10px;
-    font-size: 13px;
-    border-radius: 10px;
-    background: #1c1c1c;
     text-align: center;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 10px;
   }
 
-  /* VIDEO – FULL HEIGHT FIX (IMPORTANT) */
   .player-wrapper {
     position: absolute;
     inset: 0;
-    top: 0;
-    bottom: 0;
-    background: #000;
+    z-index: 1;
   }
 
   .player-wrapper iframe {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* removes black bars */
-    border: none;
+    object-fit: cover;
     background: #000;
+    z-index: 1;
   }
 
-  /* SUBTITLES SAFE */
-  iframe::cue {
-    font-size: 14px;
-  }
-
-  /* EPISODES – BOTTOM SHEET */
   .episode-grid {
     position: absolute;
     bottom: 0;
@@ -300,20 +203,19 @@
     background: #0d0d0d;
     border-radius: 18px 18px 0 0;
     padding: 12px;
-    z-index: 25;
+    z-index: 60;
   }
 
   .episode-grid button {
-    padding: 12px;
     font-size: 14px;
+    padding: 12px;
     border-radius: 12px;
   }
 }
 
-/* EXTRA SMALL PHONES */
+/* ================= EXTRA SMALL ================= */
 @media (max-width: 480px) {
   .server-dropdown {
     grid-template-columns: 1fr;
   }
 }
-
